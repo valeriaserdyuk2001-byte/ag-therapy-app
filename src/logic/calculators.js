@@ -191,8 +191,8 @@ export function estimateCurrentTherapyStep(state, scenarioKey) {
 export function score2Image(age) {
   const a = Number(age);
   if (!Number.isFinite(a)) return '';
-  if (a >= 70) return './assets/score2-70-plus.svg';
-  if (a >= 40) return './assets/score2-40-69.svg';
+  if (a >= 70) return './assets/image2.png';
+  if (a >= 40) return './assets/image1.png';
   return '';
 }
 
