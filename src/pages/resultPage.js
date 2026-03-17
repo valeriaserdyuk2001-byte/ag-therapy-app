@@ -132,28 +132,50 @@ export function renderResultPage(root, rerender) {
     }
   });
 
-  const prevStep = document.getElementById('prevStep');
-  if (prevStep) prevStep.addEventListener('click', () => {
-    const step = Math.max(1, (result.stepIndex || 1) - 1);
-    const next = getState();
-    next.therapyStatus.mode = 'correction';
-    next.therapyStatus.targetAchieved = false;
-    if (step === 1) next.therapyStatus.currentClasses = ['ИАПФ', 'БКК'];
-    if (step === 2) next.therapyStatus.currentClasses = ['ИАПФ', 'БКК', 'ДИУРЕТИКИ'];
-    if (step === 3) next.therapyStatus.currentClasses = ['ИАПФ', 'БКК', 'ДИУРЕТИКИ', 'АМКР'];
-    localStorage.setItem('agAppState', JSON.stringify(next));
-    rerender();
-  });
+  const toggleAlternativeBtn = document.getElementById('toggleAlternativeTherapy');
+    if (toggleAlternativeBtn) {
+      toggleAlternativeBtn.addEventListener('click', () => {
+        const block = document.getElementById('alternativeTherapyBlock');
+        if (!block) return;
 
-  const nextStep = document.getElementById('nextStep');
-  if (nextStep) nextStep.addEventListener('click', () => {
-    const next = getState();
-    next.therapyStatus.mode = 'correction';
-    next.therapyStatus.targetAchieved = false;
-    if ((result.stepIndex || 1) <= 1) next.therapyStatus.currentClasses = ['ИАПФ', 'БКК'];
-    else if (result.stepIndex === 2) next.therapyStatus.currentClasses = ['ИАПФ', 'БКК', 'ДИУРЕТИКИ'];
-    else next.therapyStatus.currentClasses = ['ИАПФ', 'БКК', 'ДИУРЕТИКИ', 'АМКР'];
-    localStorage.setItem('agAppState', JSON.stringify(next));
-    rerender();
-  });
+        const isHidden = block.style.display === 'none';
+        block.style.display = isHidden ? 'block' : 'none';
+        toggleAlternativeBtn.textContent = isHidden
+          ? 'Скрыть альтернативное лечение'
+          : 'Показать альтернативное лечение';
+      });
+    }
+
+  const prevStep = document.getElementById('prevStep');
+    if (prevStep) {
+      prevStep.addEventListener('click', () => {
+        const minStep = result.scenario?.key === 'standard' ? 0 : 1;
+        const newStep = Math.max(minStep, (result.stepIndex ?? 1) - 1);
+
+        const nextState = getState();
+        nextState.therapyStatus.mode = 'correction';
+        nextState.therapyStatus.targetAchieved = false;
+        nextState.therapyStatus.currentClasses = classesForStep(newStep);
+
+        rerender();
+      });
+    }
+
+    const nextStep = document.getElementById('nextStep');
+    if (nextStep) {
+      nextStep.addEventListener('click', () => {
+        const maxStep = result.scenarioConfig
+          ? Math.max(...Object.keys(result.scenarioConfig.steps).map(Number))
+          : (result.stepIndex ?? 1);
+
+        const newStep = Math.min(maxStep, (result.stepIndex ?? 1) + 1);
+
+        const nextState = getState();
+        nextState.therapyStatus.mode = 'correction';
+        nextState.therapyStatus.targetAchieved = false;
+        nextState.therapyStatus.currentClasses = classesForStep(newStep);
+
+        rerender();
+      });
+    }
 }
