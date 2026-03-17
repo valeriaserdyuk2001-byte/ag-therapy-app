@@ -51,8 +51,7 @@ export function renderResultPage(root, rerender) {
 
             ${result.note ? `<div class="kv-row"><div class="kv-key">Темп интенсификации</div><div>${escapeHtml(result.note)}</div></div>` : ''}
 
-            ${result.alternativeTherapy
-              ? `
+            ${result.alternativeTherapy ? `
               <div class="btn-row" style="margin-top:12px;">
                 <button type="button" class="btn secondary" id="toggleAlternativeTherapy">
                   Показать альтернативное лечение
@@ -64,9 +63,14 @@ export function renderResultPage(root, rerender) {
                   <div class="kv-key">Альтернативный вариант</div>
                   <div>${escapeHtml(result.alternativeTherapy)}</div>
                 </div>
+                ${result.alternativeExamples?.length ? `
+                  <div class="kv-row">
+                    <div class="kv-key">Примеры препаратов</div>
+                    <div>${result.alternativeExamples.map((x) => `<div>${escapeHtml(x)}</div>`).join('')}</div>
+                  </div>
+                ` : ''}
               </div>
-              `
-              : ''}
+            ` : ''}
           </div>
 
           <div class="btn-row" style="margin-top:12px;">

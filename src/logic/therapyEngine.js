@@ -131,9 +131,16 @@ function resolveDoseLevel(state, scenarioConfig, stepIndex, bpDegree, risk) {
   }
 
   const ageFrailtyBase = getDoseBaseByAgeOrFrailty(state);
-  if (ageFrailtyBase && stepIndex === 1) return { doseLevel: 'minimal', specialStandardLowStart: false, target };
+  if (ageFrailtyBase && stepIndex === 1) {
+    return { doseLevel: 'minimal', specialStandardLowStart: false, target };
+  }
 
-  return { doseLevel: scenarioConfig.steps[stepIndex]?.doseLevel || 'optimal', specialStandardLowStart: false, target };
+  const stepConfig = scenarioConfig.steps[stepIndex] || scenarioConfig.steps[1];
+  return {
+    doseLevel: stepConfig?.primary?.doseLevel || 'optimal',
+    specialStandardLowStart: false,
+    target,
+  };
 }
 
 function textToBaseClasses(planText = '') {
@@ -152,6 +159,10 @@ function textToBaseClasses(planText = '') {
   if (t.includes('аир')) arr.push('АИР');
   if (t.includes('ааб')) arr.push('ААБ');
   return unique(arr);
+}
+
+function getStepPlanText(stepVariant = {}) {
+  return stepVariant.classPlan || stepVariant.textPlan || '';
 }
 
 export function buildTherapyRecommendation(state) {
@@ -175,9 +186,15 @@ export function buildTherapyRecommendation(state) {
     stepIndex = estimateCurrentTherapyStep(state, scenario.key);
   }
 
-  if ((bpDegree === 'нормальное' || bpDegree === 'высокое нормальное' || bpDegree === 'оптимальное')) {
+  if (bpDegree === 'нормальное' || bpDegree === 'высокое нормальное' || bpDegree === 'оптимальное') {
     return {
-      bpDegree, stage, risk, frailty, cha, targetBp, scenario,
+      bpDegree,
+      stage,
+      risk,
+      frailty,
+      cha,
+      targetBp,
+      scenario,
       therapyType: state.therapyStatus.mode === 'start' ? 'старт терапии' : 'корректировка терапии',
       currentClasses: state.therapyStatus.currentClasses,
       noDrugTherapy: true,
@@ -185,6 +202,8 @@ export function buildTherapyRecommendation(state) {
       stepIndex: null,
       stepLabel: '',
       mainTherapy: 'Показаний для медикаментозной терапии нет.',
+      alternativeTherapy: '',
+      alternativeExamples: [],
       examples: [],
       recommendations: baseAdvice.recommendations,
       warnings: baseAdvice.warnings,
@@ -195,37 +214,66 @@ export function buildTherapyRecommendation(state) {
 
   const resolvedDose = resolveDoseLevel(state, scenarioConfig, stepIndex, bpDegree, risk);
   const stepConfig = scenarioConfig.steps[stepIndex] || scenarioConfig.steps[1];
-  let mainTherapy = '';
-  let examples = [];
-  const alternativeTherapy = stepConfig?.alternatives || '';
 
-  if (scenarioConfig.id === 'pregnancy') {
-    mainTherapy = stepConfig.textPlan;
+  let mainTherapy = '';
+  let alternativeTherapy = '';
+  let examples = [];
+  let alternativeExamples = [];
+
+  if (resolvedDose.specialStandardLowStart) {
+    mainTherapy = 'ИАПФ или БРА или диуретик или длительно действующий БКК или ББ в минимальной дозе.';
+    examples = pickDrugExamples(
+      ['ИАПФ', 'БРА', 'БКК', 'ДИУРЕТИКИ', 'ББ'].filter((c) => !excludedClasses.includes(c)),
+      'minimal',
+    );
+    stepIndex = 0;
   } else {
-    const finalDose = resolvedDose.doseLevel === 'specific' ? 'specific' : resolvedDose.doseLevel;
-    if (resolvedDose.specialStandardLowStart) {
-      mainTherapy = 'ИАПФ или БРА или диуретик или длительно действующий БКК или ББ в минимальной дозе.';
-      examples = pickDrugExamples(['ИАПФ', 'БРА', 'БКК', 'ДИУРЕТИКИ', 'ББ'].filter((c) => !excludedClasses.includes(c)), 'minimal');
-      stepIndex = 0;
+    const primaryPlan = stepConfig?.primary || {};
+    const alternativePlan = stepConfig?.alternative || null;
+
+    const primaryText = getStepPlanText(primaryPlan);
+    const primaryDose = primaryPlan?.doseLevel || resolvedDose.doseLevel || 'optimal';
+
+    if (primaryPlan.textPlan) {
+      mainTherapy = primaryText;
+      examples = [];
     } else {
-      let plan = stepConfig.classPlan || stepConfig.textPlan || '';
-      let alt = stepConfig.alternatives ? ` ${stepConfig.alternatives}.` : '';
-      mainTherapy = `${plan} в ${resolvedDose.doseLevel === 'specific' ? 'указанных дозах' : doseLabelMap[finalDose]}.${alt}`;
-      const baseClasses = textToBaseClasses(plan).filter((c) => !excludedClasses.includes(c));
-      examples = pickDrugExamples(baseClasses, finalDose);
+      mainTherapy = `${primaryText} в ${doseLabelMap[primaryDose] || primaryDose}.`;
+      const baseClasses = textToBaseClasses(primaryText).filter((c) => !excludedClasses.includes(c));
+      examples = pickDrugExamples(baseClasses, primaryDose);
+    }
+
+    if (alternativePlan) {
+      const alternativeText = getStepPlanText(alternativePlan);
+      const alternativeDose = alternativePlan?.doseLevel || 'optimal';
+
+      if (alternativePlan.textPlan) {
+        alternativeTherapy = alternativeText;
+        alternativeExamples = [];
+      } else {
+        alternativeTherapy = `${alternativeText} в ${doseLabelMap[alternativeDose] || alternativeDose}.`;
+        const altClasses = textToBaseClasses(alternativeText).filter((c) => !excludedClasses.includes(c));
+        alternativeExamples = pickDrugExamples(altClasses, alternativeDose);
+      }
     }
   }
 
   const additionalTherapy = [rules().statinTargets[risk]].filter(Boolean);
+
   if (
     state.additional.conditions.selected.includes('Эректильная дисфункция') &&
-    !mainTherapy.includes('ААБ')
+    !mainTherapy.includes('ААБ') &&
+    !alternativeTherapy.includes('ААБ')
   ) {
     additionalTherapy.push('Рассмотреть ингибиторы фосфодиэстеразы-5.');
   }
 
-  if (scenarioConfig.warning) baseAdvice.warnings.push(scenarioConfig.warning);
-  if (stepConfig.warning) baseAdvice.warnings.push(stepConfig.warning);
+  if (scenarioConfig.warning) {
+    baseAdvice.warnings.push(scenarioConfig.warning);
+  }
+  if (stepConfig.warning) {
+    baseAdvice.warnings.push(stepConfig.warning);
+  }
 
   return {
     bpDegree,
@@ -245,6 +293,7 @@ export function buildTherapyRecommendation(state) {
     mainTherapy,
     alternativeTherapy,
     examples,
+    alternativeExamples,
     recommendations: unique(baseAdvice.recommendations),
     warnings: unique(baseAdvice.warnings),
     additionalTherapy: unique(additionalTherapy),

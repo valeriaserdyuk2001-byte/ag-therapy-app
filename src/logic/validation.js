@@ -8,6 +8,8 @@ export function validateState(state) {
   const age = Number(state.patient.age);
   const sbp = Number(state.patient.sbp);
   const dbp = Number(state.patient.dbp);
+  const selectedConditions = state.additional?.conditions?.selected || [];
+  const selectedMeds = state.additional?.meds?.selected || [];
 
   if (!Number.isFinite(age) || age <= 0 || age > 120) {
     errors.push('Ошибка: возраст должен быть указан числом от 1 до 120 лет.');
