@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="260" viewBox="0 0 900 260">
+<rect width="900" height="260" rx="20" fill="#ffffff"/>
+<rect x="20" y="20" width="860" height="220" rx="16" fill="#edf4ff" stroke="#bfd4ff"/>
+<text x="42" y="74" font-family="Arial" font-size="30" font-weight="700" fill="#1f4fa8">SCORE2-OP — изображение 2</text>
+<text x="42" y="120" font-family="Arial" font-size="22" fill="#335f9f">Использовать для пациентов 70+ лет</text>
+<text x="42" y="158" font-family="Arial" font-size="18" fill="#456c9c">Здесь можно заменить файл на реальную шкалу SCORE2-OP при наличии исходного изображения.</text>
+</svg>
