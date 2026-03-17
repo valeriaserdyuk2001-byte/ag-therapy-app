@@ -197,6 +197,7 @@ export function buildTherapyRecommendation(state) {
   const stepConfig = scenarioConfig.steps[stepIndex] || scenarioConfig.steps[1];
   let mainTherapy = '';
   let examples = [];
+  const alternativeTherapy = stepConfig?.alternatives || '';
 
   if (scenarioConfig.id === 'pregnancy') {
     mainTherapy = stepConfig.textPlan;
@@ -242,6 +243,7 @@ export function buildTherapyRecommendation(state) {
     stepIndex,
     stepLabel: scenarioConfig.steps[stepIndex]?.label || stepConfig.label,
     mainTherapy,
+    alternativeTherapy,
     examples,
     recommendations: unique(baseAdvice.recommendations),
     warnings: unique(baseAdvice.warnings),

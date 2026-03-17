@@ -39,6 +39,27 @@ export function validateState(state) {
     }
   }
 
+   if (age > 50 && selectedConditions.includes('Беременность')) {
+    errors.push('Ошибка: беременность не должна быть выбрана у пациентки старше 50 лет.');
+  }
+
+  if (
+    selectedConditions.includes('Беременность') &&
+    (
+      selectedMeds.includes('КОК') ||
+      selectedMeds.includes('Менопаузальная гормональная терапия')
+    )
+  ) {
+    errors.push('Ошибка: при выбранной беременности нельзя указывать КОК или менопаузальную гормональную терапию.');
+  }
+
+  if (
+    selectedMeds.includes('КОК') &&
+    selectedMeds.includes('Менопаузальная гормональная терапия')
+  ) {
+    errors.push('Ошибка: нельзя одновременно выбрать КОК и менопаузальную гормональную терапию.');
+  }
+
   if (state.patient.sex === 'male' && state.additional.conditions.selected.includes('Беременность')) {
     errors.push('Ошибка: беременность недоступна для выбранного пола.');
   }

@@ -94,8 +94,8 @@ export function renderFormPage(root, rerender) {
 
   root.innerHTML = `
     <div class="container">
-      <h1 class="page-title">Система помощи принятия решений по терапии АГ</h1>
-      <p class="page-subtitle">Первая страница — ввод данных пациента и rule-based определение степени, стадии, риска и клинического сценария.</p>
+      <h1 class="page-title">Система помощи принятия решений в выборе терапии артериальной гиертензии</h1>
+      <p class="page-subtitle">Введите данные пациента для подбора терапии.</p>
 
       ${validation.errors.length ? `<div class="error-list card"><strong>Критические ошибки</strong><ul class="list">${validation.errors.map((e) => `<li>${escapeHtml(e)}</li>`).join('')}</ul></div>` : ''}
       ${validation.warnings.length ? `<div class="warning-list card"><strong>Предупреждения</strong><ul class="list">${validation.warnings.map((e) => `<li>${escapeHtml(e)}</li>`).join('')}</ul></div>` : ''}
@@ -398,17 +398,7 @@ export function renderFormPage(root, rerender) {
           <div class="kv-row"><div class="kv-key">Риск</div><div>${escapeHtml(risk || 'не определён')}</div></div>
         </section>
 
-        <section class="card">
-          <h2 class="section-title">Скрытый редактор правил</h2>
-          <div class="small">Нажмите <span class="code-hint">Ctrl + Shift + R</span>, чтобы показать или скрыть JSON-конфигурацию правил.</div>
-          <div class="rule-editor ${state.ui.showRuleEditor ? 'visible' : ''}">
-            <textarea id="ruleEditor">${escapeHtml(JSON.stringify(loadRules(), null, 2))}</textarea>
-            <div class="btn-row" style="margin-top:12px;">
-              <button type="button" class="btn primary" id="saveRules">Сохранить конфигурацию</button>
-              <button type="button" class="btn secondary" id="resetRules">Сбросить конфигурацию</button>
-            </div>
-          </div>
-        </section>
+        
 
         <div class="sticky-actions">
           <div class="btn-row">

@@ -38,13 +38,37 @@ export function renderResultPage(root, rerender) {
           <h2 class="section-title">Рекомендуемая медикаментозная терапия</h2>
           <div class="result-box">
             <div class="kv-row"><div class="kv-key">Вид терапии</div><div>${escapeHtml(result.therapyType)}</div></div>
-            ${result.therapyType === 'корректировка терапии' ? `<div class="kv-row"><div class="kv-key">Принимаемые препараты</div><div>${result.currentClasses.length ? escapeHtml(result.currentClasses.join(', ')) : 'не указаны'}</div></div>` : ''}
+            ${result.therapyType === 'корректировка терапии'
+              ? `<div class="kv-row"><div class="kv-key">Принимаемые препараты</div><div>${result.currentClasses.length ? escapeHtml(result.currentClasses.join(', ')) : 'не указаны'}</div></div>`
+              : ''}
             <div class="kv-row"><div class="kv-key">Клинический сценарий</div><div>${escapeHtml(result.scenarioLabel)}</div></div>
             ${result.stepLabel ? `<div class="kv-row"><div class="kv-key">Шаг терапии</div><div>${escapeHtml(result.stepLabel)}</div></div>` : ''}
             <div class="kv-row"><div class="kv-key">Основная рекомендованная терапия</div><div>${escapeHtml(result.mainTherapy)}</div></div>
-            ${result.examples?.length ? `<div class="kv-row"><div class="kv-key">Примеры препаратов</div><div>${result.examples.map((x) => `<div>${escapeHtml(x)}</div>`).join('')}</div></div>` : ''}
+
+            ${result.examples?.length
+              ? `<div class="kv-row"><div class="kv-key">Примеры препаратов</div><div>${result.examples.map((x) => `<div>${escapeHtml(x)}</div>`).join('')}</div></div>`
+              : ''}
+
             ${result.note ? `<div class="kv-row"><div class="kv-key">Темп интенсификации</div><div>${escapeHtml(result.note)}</div></div>` : ''}
+
+            ${result.alternativeTherapy
+              ? `
+              <div class="btn-row" style="margin-top:12px;">
+                <button type="button" class="btn secondary" id="toggleAlternativeTherapy">
+                  Показать альтернативное лечение
+                </button>
+              </div>
+
+              <div id="alternativeTherapyBlock" class="result-box" style="display:none; margin-top:12px;">
+                <div class="kv-row">
+                  <div class="kv-key">Альтернативный вариант</div>
+                  <div>${escapeHtml(result.alternativeTherapy)}</div>
+                </div>
+              </div>
+              `
+              : ''}
           </div>
+
           <div class="btn-row" style="margin-top:12px;">
             <button type="button" class="btn secondary" id="prevStep" ${!result.stepIndex || result.stepIndex <= 1 ? 'disabled' : ''}>Предыдущий шаг терапии</button>
             <button type="button" class="btn secondary" id="nextStep" ${(result.noDrugTherapy || !result.scenarioConfig || !result.scenarioConfig.steps[result.stepIndex + 1]) ? 'disabled' : ''}>Следующий шаг терапии</button>
