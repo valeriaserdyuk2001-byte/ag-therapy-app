@@ -89,7 +89,7 @@ export function renderResultPage(root, rerender) {
         </section>
 
         <section class="card">
-          <h2 class="section-title">Почему рекомендовано именно это</h2>
+          <h2 class="section-title">Обоснование терапии</h2>
           <div class="explain-box">
             <ul class="list">${explanation.map((line) => `<li>${escapeHtml(line)}</li>`).join('')}</ul>
           </div>
