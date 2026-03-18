@@ -1,5 +1,5 @@
 
-import { getState } from '../appState.js';
+import { getState, setState } from '../appState.js';
 import { buildTherapyRecommendation } from '../logic/therapyEngine.js';
 import { buildExplanation } from '../logic/explanation.js';
 import { buildConclusion } from '../logic/conclusion.js';
@@ -147,35 +147,31 @@ export function renderResultPage(root, rerender) {
     }
 
   const prevStep = document.getElementById('prevStep');
-    if (prevStep) {
-      prevStep.addEventListener('click', () => {
-        const minStep = result.scenario?.key === 'standard' ? 0 : 1;
-        const newStep = Math.max(minStep, (result.stepIndex ?? 1) - 1);
+  if (prevStep) {
+    prevStep.addEventListener('click', () => {
+      const minStep = result.scenario?.key === 'standard' ? 0 : 1;
+      const newStep = Math.max(minStep, (result.stepIndex ?? 1) - 1);
 
-        const nextState = getState();
-        nextState.therapyStatus.mode = 'correction';
-        nextState.therapyStatus.targetAchieved = false;
-        nextState.therapyStatus.currentClasses = classesForStep(newStep);
+      const next = getState();
+      next.manualStepView = newStep;
+      setState(next);
+      rerender();
+    });
+  }
 
-        rerender();
-      });
-    }
+  const nextStep = document.getElementById('nextStep');
+  if (nextStep) {
+    nextStep.addEventListener('click', () => {
+      const maxStep = result.scenarioConfig
+        ? Math.max(...Object.keys(result.scenarioConfig.steps).map(Number))
+        : (result.stepIndex ?? 1);
 
-    const nextStep = document.getElementById('nextStep');
-    if (nextStep) {
-      nextStep.addEventListener('click', () => {
-        const maxStep = result.scenarioConfig
-          ? Math.max(...Object.keys(result.scenarioConfig.steps).map(Number))
-          : (result.stepIndex ?? 1);
+      const newStep = Math.min(maxStep, (result.stepIndex ?? 1) + 1);
 
-        const newStep = Math.min(maxStep, (result.stepIndex ?? 1) + 1);
-
-        const nextState = getState();
-        nextState.therapyStatus.mode = 'correction';
-        nextState.therapyStatus.targetAchieved = false;
-        nextState.therapyStatus.currentClasses = classesForStep(newStep);
-
-        rerender();
-      });
-    }
+      const next = getState();
+      next.manualStepView = newStep;
+      setState(next);
+      rerender();
+    });
+  }
 }

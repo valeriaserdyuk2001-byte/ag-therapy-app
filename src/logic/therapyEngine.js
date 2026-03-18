@@ -179,7 +179,9 @@ export function buildTherapyRecommendation(state) {
   const excludedClasses = [...baseAdvice.excluded];
 
   let stepIndex = 1;
-  if (state.therapyStatus.mode === 'correction' && !state.therapyStatus.targetAchieved) {
+  if (typeof state.manualStepView === 'number') {
+    stepIndex = state.manualStepView;
+  } else if (state.therapyStatus.mode === 'correction' && !state.therapyStatus.targetAchieved) {
     const current = estimateCurrentTherapyStep(state, scenario.key);
     stepIndex = Math.min(current + 1, Math.max(...Object.keys(scenarioConfig.steps).map(Number)));
   } else if (state.therapyStatus.mode === 'correction' && state.therapyStatus.targetAchieved) {

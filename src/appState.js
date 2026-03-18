@@ -71,6 +71,7 @@ export const defaultState = {
   },
   ui: {
     showRuleEditor: false,
+    manualStepView: null,
   },
 };
 
